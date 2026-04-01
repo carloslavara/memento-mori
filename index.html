@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pixel-Art Time Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="grid-bg" aria-hidden="true"></div>
+    <main class="app">
+      <header class="app-header card">
+        <div>
+          <h1>PIXEL-ART TIME TRACKER</h1>
+          <p class="subtitle">Synthwave Cyber-Retro Clockwork</p>
+        </div>
+        <div>
+          <p class="label">CURRENT LOCAL TIME</p>
+          <p id="currentDateTime" class="current-time">--:--:--</p>
+        </div>
+      </header>
+
+      <section class="controls card" aria-label="settings">
+        <h2>SETTINGS</h2>
+        <div class="toggle-grid">
+          <button class="toggle" data-setting="timeFormat" data-value="12h" aria-pressed="false">12H</button>
+          <button class="toggle" data-setting="timeFormat" data-value="24h" aria-pressed="true">24H</button>
+          <button class="toggle" data-setting="showSeconds" data-value="true" aria-pressed="true">SHOW SECONDS</button>
+          <button class="toggle" data-setting="showSeconds" data-value="false" aria-pressed="false">HIDE SECONDS</button>
+          <button class="toggle" data-setting="soundEnabled" data-value="true" aria-pressed="false">SOUND ON</button>
+          <button class="toggle" data-setting="soundEnabled" data-value="false" aria-pressed="true">SOUND OFF</button>
+          <button class="toggle" data-setting="animationsEnabled" data-value="true" aria-pressed="true">ANIMATIONS ON</button>
+          <button class="toggle" data-setting="animationsEnabled" data-value="false" aria-pressed="false">ANIMATIONS OFF</button>
+        </div>
+      </section>
+
+      <section class="dashboard" aria-label="time countdowns">
+        <article class="card countdown-card" id="dayCard">
+          <h2>DAY</h2>
+          <p class="main-value" id="dayValue">--:--:--</p>
+          <p class="secondary-value" id="dayPercent">--%</p>
+          <div class="progress-shell">
+            <div class="progress-fill" id="dayProgress"></div>
+          </div>
+        </article>
+
+        <article class="card countdown-card" id="weekCard">
+          <h2>WEEK</h2>
+          <p class="main-value" id="weekValue">--d --:--:--</p>
+          <p class="secondary-value" id="weekPercent">--%</p>
+          <div class="progress-shell">
+            <div class="progress-fill" id="weekProgress"></div>
+          </div>
+        </article>
+
+        <article class="card countdown-card" id="yearCard">
+          <h2>YEAR</h2>
+          <p class="main-value" id="yearValue">--d --:--:--</p>
+          <p class="secondary-value" id="yearPercent">--%</p>
+          <div class="progress-shell">
+            <div class="progress-fill" id="yearProgress"></div>
+          </div>
+        </article>
+
+        <article class="card life-card" id="lifeCard">
+          <h2>LIFE</h2>
+          <form id="birthForm" novalidate>
+            <div class="field-group">
+              <label for="birthDate">Birth date</label>
+              <input id="birthDate" name="birthDate" type="date" required />
+            </div>
+            <div class="field-group">
+              <label for="birthTime">Birth time (optional)</label>
+              <input id="birthTime" name="birthTime" type="time" step="1" />
+            </div>
+            <button type="submit" class="primary-btn">SAVE BIRTH INFO</button>
+            <p id="birthError" class="error" role="alert" aria-live="polite"></p>
+          </form>
+
+          <dl class="life-stats">
+            <div><dt>Total seconds</dt><dd id="aliveSeconds">--</dd></div>
+            <div><dt>Total minutes</dt><dd id="aliveMinutes">--</dd></div>
+            <div><dt>Total hours</dt><dd id="aliveHours">--</dd></div>
+            <div><dt>Total days</dt><dd id="aliveDays">--</dd></div>
+            <div><dt>Derived age</dt><dd id="aliveDerived">--</dd></div>
+          </dl>
+        </article>
+
+        <article class="card mascot-card" id="mascotCard" aria-live="polite">
+          <h2>MASCOT</h2>
+          <div class="mascot-shell">
+            <div id="mascotSprite" class="mascot-sprite state-alert" role="img" aria-label="Mascot state"></div>
+            <div class="mascot-meta">
+              <p class="label">STATE</p>
+              <p id="mascotLabel" class="mascot-label">FOCUSED</p>
+              <p id="mascotCaption" class="secondary-value mascot-caption">Ready to tackle the timeline.</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <footer class="app-footer card">
+        <p id="timezone">TZ: --</p>
+        <p>Version: MVP v1.1</p>
+      </footer>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
