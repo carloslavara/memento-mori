@@ -11,9 +11,29 @@ const defaultState = {
   },
 };
 
+const CHARACTER_SCHEDULE = [
+  { state: "waking", from: 5, to: 9, label: "ENERGETIC", caption: "Booting up with sunrise glow." },
+  { state: "alert", from: 9, to: 12, label: "FOCUSED", caption: "Ready to tackle the timeline." },
+  { state: "steady", from: 12, to: 15, label: "STEADY", caption: "Cruising through midday loops." },
+  { state: "tired", from: 15, to: 18, label: "A LITTLE TIRED", caption: "Power levels are dipping." },
+  { state: "sleepy", from: 18, to: 21, label: "SLEEPY", caption: "Evening mode: soft blinks." },
+  { state: "dozing", from: 21, to: 23, label: "DOZING", caption: "Nodding off with neon dreams." },
+  { state: "asleep", from: 23, to: 5, label: "ASLEEP", caption: "Offline until dawn cycles." },
+];
+
+const SPRITE_MAP = {
+  waking: pixelSprite({ eye: "#4dffff", mouth: "#ff3fd8", extras: false }),
+  alert: pixelSprite({ eye: "#4dffff", mouth: "#4dffff", extras: true }),
+  steady: pixelSprite({ eye: "#c8b3ff", mouth: "#4dffff", extras: false }),
+  tired: pixelSprite({ eye: "#b79ae6", mouth: "#ff3fd8", extras: false, droop: true }),
+  sleepy: pixelSprite({ eye: "#9575cf", mouth: "#b79ae6", extras: false, droop: true }),
+  dozing: pixelSprite({ eye: "#6f569f", mouth: "#9575cf", extras: false, droop: true, zzz: true }),
+  asleep: pixelSprite({ eye: "#5c4a80", mouth: "#8e74ba", extras: false, closed: true, zzz: true }),
+};
+
 const state = loadState();
 const audioCtx = { context: null, ready: false };
-const lastMilestones = { minute: null, hour: null, day: null };
+const lastMilestones = { minute: null, hour: null, day: null, character: null };
 
 const el = {
   currentDateTime: document.getElementById("currentDateTime"),
@@ -36,6 +56,9 @@ const el = {
   aliveDays: document.getElementById("aliveDays"),
   aliveDerived: document.getElementById("aliveDerived"),
   timezone: document.getElementById("timezone"),
+  mascotSprite: document.getElementById("mascotSprite"),
+  mascotLabel: document.getElementById("mascotLabel"),
+  mascotCaption: document.getElementById("mascotCaption"),
 };
 
 hydrateUI();
@@ -49,6 +72,7 @@ function runTick() {
   renderCountdown(now, "week");
   renderCountdown(now, "year");
   renderLifetime(now);
+  renderCharacter(now);
   playMilestones(now);
 }
 
@@ -64,6 +88,30 @@ function renderHeader(now) {
   };
   el.currentDateTime.textContent = new Intl.DateTimeFormat(undefined, options).format(now);
   el.timezone.textContent = `TZ: ${Intl.DateTimeFormat().resolvedOptions().timeZone || "Local"}`;
+}
+
+function renderCharacter(now) {
+  const config = getCharacterConfig(now.getHours());
+  const prior = lastMilestones.character;
+
+  if (prior !== config.state) {
+    if (prior !== null) playTone("character");
+    lastMilestones.character = config.state;
+  }
+
+  el.mascotLabel.textContent = config.label;
+  el.mascotCaption.textContent = config.caption;
+  el.mascotSprite.style.backgroundImage = `url("${SPRITE_MAP[config.state]}")`;
+  el.mascotSprite.className = `mascot-sprite state-${config.state}`;
+  el.mascotSprite.setAttribute("aria-label", `Mascot is ${config.label.toLowerCase()}`);
+}
+
+function getCharacterConfig(hour) {
+  for (const slot of CHARACTER_SCHEDULE) {
+    if (slot.from < slot.to && hour >= slot.from && hour < slot.to) return slot;
+    if (slot.from > slot.to && (hour >= slot.from || hour < slot.to)) return slot;
+  }
+  return CHARACTER_SCHEDULE[CHARACTER_SCHEDULE.length - 1];
 }
 
 function renderCountdown(now, type) {
@@ -180,9 +228,7 @@ function formatDuration(ms, includeDays, showSeconds) {
   const mm = String(minutes).padStart(2, "0");
   const ss = String(seconds).padStart(2, "0");
 
-  if (includeDays) {
-    return `${days}d ${hh}:${mm}${showSeconds ? `:${ss}` : ""}`;
-  }
+  if (includeDays) return `${days}d ${hh}:${mm}${showSeconds ? `:${ss}` : ""}`;
   return `${hh}:${mm}${showSeconds ? `:${ss}` : ""}`;
 }
 
@@ -234,13 +280,7 @@ function hydrateUI() {
     renderLifetime(new Date());
   });
 
-  document.body.addEventListener(
-    "pointerdown",
-    () => {
-      initAudio();
-    },
-    { once: true }
-  );
+  document.body.addEventListener("pointerdown", initAudio, { once: true });
 }
 
 function updateToggleButtons() {
@@ -299,6 +339,7 @@ function playTone(type) {
     hour: { freq: 880, dur: 0.09, vol: 0.06 },
     day: { freq: 440, dur: 0.12, vol: 0.07 },
     ui: { freq: 700, dur: 0.04, vol: 0.04 },
+    character: { freq: 560, dur: 0.06, vol: 0.04 },
   };
   const cfg = map[type] || map.tick;
 
@@ -331,4 +372,25 @@ function playMilestones(now) {
     lastMilestones.day = dayKey;
     playTone("day");
   }
+}
+
+function pixelSprite({ eye, mouth, extras, droop, zzz, closed }) {
+  const eyesY = droop ? 70 : 62;
+  const eyeHeight = closed ? 4 : 10;
+  const smile = `<rect x="68" y="96" width="24" height="6" fill="${mouth}" />`;
+  const spark = extras ? `<rect x="24" y="28" width="8" height="8" fill="#4dffff" /><rect x="132" y="36" width="8" height="8" fill="#ff3fd8" />` : "";
+  const sleep = zzz ? `<rect x="122" y="24" width="8" height="8" fill="#b79ae6"/><rect x="130" y="16" width="8" height="8" fill="#b79ae6"/>` : "";
+
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' shape-rendering='crispEdges'>
+    <rect width='160' height='160' fill='#090413'/>
+    <rect x='28' y='24' width='104' height='112' fill='#1a0b33'/>
+    <rect x='36' y='34' width='88' height='84' fill='#2a1450'/>
+    <rect x='52' y='${eyesY}' width='16' height='${eyeHeight}' fill='${eye}'/>
+    <rect x='92' y='${eyesY}' width='16' height='${eyeHeight}' fill='${eye}'/>
+    ${smile}
+    <rect x='44' y='120' width='72' height='8' fill='#5f6fff'/>
+    ${spark}
+    ${sleep}
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }

@@ -31,7 +31,8 @@ body {
 }
 
 body.no-anim .grid-bg,
-body.no-anim .progress-fill::after {
+body.no-anim .progress-fill::after,
+body.no-anim .mascot-sprite {
   animation: none;
 }
 
@@ -40,14 +41,7 @@ body.no-anim .progress-fill::after {
   to { transform: translateY(24px); }
 }
 
-.app {
-  position: relative;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  display: grid;
-  gap: 16px;
-}
+.app { position: relative; max-width: 1200px; margin: 0 auto; padding: 20px; display: grid; gap: 16px; }
 
 .card {
   background: linear-gradient(180deg, rgba(26, 11, 51, 0.96), rgba(12, 5, 28, 0.96));
@@ -59,17 +53,11 @@ body.no-anim .progress-fill::after {
 h1, h2 { font-family: "Press Start 2P", system-ui; margin: 0; line-height: 1.4; }
 h1 { font-size: 1rem; color: var(--cyan); text-shadow: 0 0 8px rgba(77,255,255,.5); }
 h2 { font-size: 0.85rem; color: var(--magenta); margin-bottom: 10px; }
-
 .subtitle, .label { margin: 8px 0 0; color: #d4baff; font-size: 0.9rem; }
 .current-time { font-size: 1.4rem; margin: 8px 0 0; color: var(--cyan); }
-
 .app-header { display: flex; justify-content: space-between; gap: 12px; align-items: end; }
 
-.controls .toggle-grid {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-}
+.controls .toggle-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
 
 .toggle, .primary-btn {
   border: 2px solid var(--electric);
@@ -83,22 +71,12 @@ h2 { font-size: 0.85rem; color: var(--magenta); margin-bottom: 10px; }
 .toggle[aria-pressed="true"] { border-color: var(--cyan); color: var(--cyan); }
 .toggle:hover, .primary-btn:hover { filter: brightness(1.2); }
 
-.dashboard {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
+.dashboard { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 
 .main-value { font-size: 1.8rem; margin: 0; color: var(--cyan); min-height: 2rem; }
 .secondary-value { margin: 8px 0 12px; color: #c8b3ff; }
 
-.progress-shell {
-  height: 16px;
-  border: 2px solid var(--electric);
-  background: #06020f;
-  overflow: hidden;
-}
-
+.progress-shell { height: 16px; border: 2px solid var(--electric); background: #06020f; overflow: hidden; }
 .progress-fill {
   height: 100%;
   width: 0;
@@ -106,7 +84,6 @@ h2 { font-size: 0.85rem; color: var(--magenta); margin-bottom: 10px; }
   background: repeating-linear-gradient(45deg, var(--magenta) 0 8px, var(--cyan) 8px 16px);
   position: relative;
 }
-
 .progress-fill::after {
   content: "";
   position: absolute;
@@ -115,10 +92,7 @@ h2 { font-size: 0.85rem; color: var(--magenta); margin-bottom: 10px; }
   animation: shimmer 1200ms linear infinite;
 }
 
-@keyframes shimmer {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(100%); }
-}
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 
 .field-group { margin-bottom: 8px; }
 label { display: block; margin-bottom: 4px; }
@@ -135,10 +109,48 @@ input {
 .life-stats div { display: flex; justify-content: space-between; gap: 10px; }
 .life-stats dd { margin: 0; color: var(--cyan); }
 
+.mascot-shell { display: grid; grid-template-columns: 168px 1fr; gap: 12px; align-items: center; }
+.mascot-sprite {
+  width: 160px;
+  height: 160px;
+  border: 2px solid var(--electric);
+  background-color: #0a0617;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 160px 160px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  animation: mascot-idle 3.5s ease-in-out infinite;
+}
+
+.mascot-label {
+  margin: 6px 0;
+  font-family: "Press Start 2P", system-ui;
+  color: var(--cyan);
+  font-size: 0.8rem;
+}
+
+.mascot-caption { margin: 0; }
+
+.state-waking { animation-duration: 2.2s; }
+.state-alert { animation-duration: 2.4s; }
+.state-steady { animation-duration: 3s; }
+.state-tired { animation-duration: 4s; }
+.state-sleepy { animation-duration: 4.5s; }
+.state-dozing { animation-duration: 5.5s; }
+.state-asleep { animation-duration: 6s; }
+
+@keyframes mascot-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
 .app-footer { display: flex; justify-content: space-between; font-size: 0.95rem; }
 
 @media (max-width: 860px) {
   .dashboard { grid-template-columns: 1fr; }
   .app-header { flex-direction: column; align-items: flex-start; }
   .main-value { font-size: 1.4rem; }
+  .mascot-shell { grid-template-columns: 1fr; }
+  .mascot-sprite { width: 128px; height: 128px; background-size: 128px 128px; }
 }
