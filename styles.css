@@ -115,12 +115,12 @@ input {
   height: 160px;
   border: 2px solid var(--electric);
   background-color: #0a0617;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 160px 160px;
+  object-fit: contain;
+  padding: 6px;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   animation: mascot-idle 3.5s ease-in-out infinite;
+  transition: opacity 180ms linear;
 }
 
 .mascot-label {
@@ -134,7 +134,7 @@ input {
 
 .state-waking { animation-duration: 2.2s; }
 .state-alert { animation-duration: 2.4s; }
-.state-steady { animation-duration: 3s; }
+.state-neutral { animation-duration: 3s; }
 .state-tired { animation-duration: 4s; }
 .state-sleepy { animation-duration: 4.5s; }
 .state-dozing { animation-duration: 5.5s; }

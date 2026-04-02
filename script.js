@@ -11,24 +11,24 @@ const defaultState = {
   },
 };
 
-const CHARACTER_SCHEDULE = [
-  { state: "waking", from: 5, to: 9, label: "ENERGETIC", caption: "Booting up with sunrise glow." },
-  { state: "alert", from: 9, to: 12, label: "FOCUSED", caption: "Ready to tackle the timeline." },
-  { state: "steady", from: 12, to: 15, label: "STEADY", caption: "Cruising through midday loops." },
-  { state: "tired", from: 15, to: 18, label: "A LITTLE TIRED", caption: "Power levels are dipping." },
-  { state: "sleepy", from: 18, to: 21, label: "SLEEPY", caption: "Evening mode: soft blinks." },
-  { state: "dozing", from: 21, to: 23, label: "DOZING", caption: "Nodding off with neon dreams." },
-  { state: "asleep", from: 23, to: 5, label: "ASLEEP", caption: "Offline until dawn cycles." },
-];
+const characterAssets = {
+  waking: "assets/character/waking.svg",
+  alert: "assets/character/alert.svg",
+  neutral: "assets/character/neutral.svg",
+  tired: "assets/character/tired.svg",
+  sleepy: "assets/character/sleepy.svg",
+  dozing: "assets/character/dozing.svg",
+  asleep: "assets/character/asleep.svg",
+};
 
-const SPRITE_MAP = {
-  waking: pixelSprite({ eye: "#4dffff", mouth: "#ff3fd8", extras: false }),
-  alert: pixelSprite({ eye: "#4dffff", mouth: "#4dffff", extras: true }),
-  steady: pixelSprite({ eye: "#c8b3ff", mouth: "#4dffff", extras: false }),
-  tired: pixelSprite({ eye: "#b79ae6", mouth: "#ff3fd8", extras: false, droop: true }),
-  sleepy: pixelSprite({ eye: "#9575cf", mouth: "#b79ae6", extras: false, droop: true }),
-  dozing: pixelSprite({ eye: "#6f569f", mouth: "#9575cf", extras: false, droop: true, zzz: true }),
-  asleep: pixelSprite({ eye: "#5c4a80", mouth: "#8e74ba", extras: false, closed: true, zzz: true }),
+const characterMeta = {
+  waking: { label: "ENERGETIC", caption: "Morning boot sequence complete." },
+  alert: { label: "FOCUSED", caption: "Locked in and fully engaged." },
+  neutral: { label: "STEADY", caption: "Midday balance maintained." },
+  tired: { label: "A LITTLE TIRED", caption: "Energy output is tapering." },
+  sleepy: { label: "SLEEPY", caption: "Visible fatigue setting in." },
+  dozing: { label: "DOZING", caption: "Barely awake, entering night mode." },
+  asleep: { label: "ASLEEP", caption: "Offline and dreaming in neon." },
 };
 
 const state = loadState();
@@ -90,28 +90,31 @@ function renderHeader(now) {
   el.timezone.textContent = `TZ: ${Intl.DateTimeFormat().resolvedOptions().timeZone || "Local"}`;
 }
 
-function renderCharacter(now) {
-  const config = getCharacterConfig(now.getHours());
-  const prior = lastMilestones.character;
-
-  if (prior !== config.state) {
-    if (prior !== null) playTone("character");
-    lastMilestones.character = config.state;
-  }
-
-  el.mascotLabel.textContent = config.label;
-  el.mascotCaption.textContent = config.caption;
-  el.mascotSprite.style.backgroundImage = `url("${SPRITE_MAP[config.state]}")`;
-  el.mascotSprite.className = `mascot-sprite state-${config.state}`;
-  el.mascotSprite.setAttribute("aria-label", `Mascot is ${config.label.toLowerCase()}`);
+function getCharacterState(hour) {
+  if (hour >= 5 && hour < 9) return "waking";
+  if (hour >= 9 && hour < 12) return "alert";
+  if (hour >= 12 && hour < 15) return "neutral";
+  if (hour >= 15 && hour < 18) return "tired";
+  if (hour >= 18 && hour < 21) return "sleepy";
+  if (hour >= 21 && hour < 23) return "dozing";
+  return "asleep";
 }
 
-function getCharacterConfig(hour) {
-  for (const slot of CHARACTER_SCHEDULE) {
-    if (slot.from < slot.to && hour >= slot.from && hour < slot.to) return slot;
-    if (slot.from > slot.to && (hour >= slot.from || hour < slot.to)) return slot;
+function renderCharacter(now) {
+  const characterState = getCharacterState(now.getHours());
+  const meta = characterMeta[characterState];
+
+  if (lastMilestones.character !== characterState) {
+    if (lastMilestones.character !== null) playTone(characterState === "sleepy" ? "yawn" : "character");
+    if (characterState === "asleep") playTone("sleep");
+    lastMilestones.character = characterState;
   }
-  return CHARACTER_SCHEDULE[CHARACTER_SCHEDULE.length - 1];
+
+  el.mascotLabel.textContent = meta.label;
+  el.mascotCaption.textContent = meta.caption;
+  el.mascotSprite.src = characterAssets[characterState];
+  el.mascotSprite.alt = `Anime pixel portrait mascot in ${meta.label.toLowerCase()} state`;
+  el.mascotSprite.className = `mascot-sprite state-${characterState}`;
 }
 
 function renderCountdown(now, type) {
@@ -340,6 +343,8 @@ function playTone(type) {
     day: { freq: 440, dur: 0.12, vol: 0.07 },
     ui: { freq: 700, dur: 0.04, vol: 0.04 },
     character: { freq: 560, dur: 0.06, vol: 0.04 },
+    yawn: { freq: 430, dur: 0.11, vol: 0.035 },
+    sleep: { freq: 320, dur: 0.15, vol: 0.03 },
   };
   const cfg = map[type] || map.tick;
 
@@ -372,25 +377,4 @@ function playMilestones(now) {
     lastMilestones.day = dayKey;
     playTone("day");
   }
-}
-
-function pixelSprite({ eye, mouth, extras, droop, zzz, closed }) {
-  const eyesY = droop ? 70 : 62;
-  const eyeHeight = closed ? 4 : 10;
-  const smile = `<rect x="68" y="96" width="24" height="6" fill="${mouth}" />`;
-  const spark = extras ? `<rect x="24" y="28" width="8" height="8" fill="#4dffff" /><rect x="132" y="36" width="8" height="8" fill="#ff3fd8" />` : "";
-  const sleep = zzz ? `<rect x="122" y="24" width="8" height="8" fill="#b79ae6"/><rect x="130" y="16" width="8" height="8" fill="#b79ae6"/>` : "";
-
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' shape-rendering='crispEdges'>
-    <rect width='160' height='160' fill='#090413'/>
-    <rect x='28' y='24' width='104' height='112' fill='#1a0b33'/>
-    <rect x='36' y='34' width='88' height='84' fill='#2a1450'/>
-    <rect x='52' y='${eyesY}' width='16' height='${eyeHeight}' fill='${eye}'/>
-    <rect x='92' y='${eyesY}' width='16' height='${eyeHeight}' fill='${eye}'/>
-    ${smile}
-    <rect x='44' y='120' width='72' height='8' fill='#5f6fff'/>
-    ${spark}
-    ${sleep}
-  </svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
